@@ -38,7 +38,7 @@ jobs:
       # build image
       - name: Run buildpack python
         run: |
-          pack build ghcr.io/${{ env.IMAGE }}:latest -e BP_JVM_VERSION=11 --buildpack 'gcr.io/paketo-buildpacks/java' --builder paketobuildpacks/builder:base --path ./spring-boot-jsp-postgres-develop/
+          pack build ghcr.io/shubhamarora94/${{ env.IMAGE }}:latest -e BP_JVM_VERSION=11 --buildpack 'gcr.io/paketo-buildpacks/java' --builder paketobuildpacks/builder:base --path ./spring-boot-jsp-postgres-develop/
           #pack build ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE }}:latest -e BP_JVM_VERSION=11 --buildpack 'gcr.io/paketo-buildpacks/java' --builder paketobuildpacks/builder:base --path ./spring-boot-jsp-postgres-develop/
 
       - name: Login to GitHub Container Registry
@@ -53,8 +53,8 @@ jobs:
           #export CR_PAT="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"
           #echo $CR_PAT | docker login ghcr.io/shubhamarora94/test-poc-jsp-tomcat -u shubhamarora94 --password-stdin
           docker images
-          docker push ghcr.io/${{ env.IMAGE }}:latest
-          docker run -p 8090:8080 -d ghcr.io/${{ env.IMAGE }}:latest
+          docker push ghcr.io/shubhamarora94/${{ env.IMAGE }}:latest
+          docker run -p 8090:8080 -d ghcr.io/shubhamarora94/${{ env.IMAGE }}:latest
           docker ps 
           docker logs $(docker ps | grep ghcr.io/${{ env.IMAGE }}:latest | awk '{print $1}')
 
