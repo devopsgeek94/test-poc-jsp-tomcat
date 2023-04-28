@@ -1,0 +1,22 @@
+server:
+  port: 8182
+
+spring:
+  mvc:
+    view:
+      prefix: /view/
+      suffix: .jsp
+  profiles:
+    active: dev
+  main:
+    banner-mode: off
+  datasource:
+    url: jdbc:h2:mem:mydb
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  h2:
+    console.enabled: true
+    port: 9191
+  jpa:
+    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
