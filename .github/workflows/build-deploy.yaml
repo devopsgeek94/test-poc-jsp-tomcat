@@ -12,7 +12,7 @@ env:
   ACR_NAME: testregistry91
   ACR_ADMIN_USER: testregistry91
   DOCKER_CMD: "sudo docker"
-  IMAGE: python
+  IMAGE: jsptomcat
   # needed to access AKS
   CLUSTER_NAME: k8-cluster2
   CLUSTER_RG: k8-cluster_group2
@@ -53,10 +53,10 @@ jobs:
           #export CR_PAT="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"
           #echo $CR_PAT | docker login ghcr.io/shubhamarora94/test-poc-jsp-tomcat -u shubhamarora94 --password-stdin
           docker images
-          docker push ghcr.io/python:latest
-          docker run -p 8090:8080 -d ghcr.io/python
+          docker push ghcr.io/${{ env.IMAGE }}:latest
+          docker run -p 8090:8080 -d ghcr.io/${{ env.IMAGE }}:latest
           docker ps 
-          docker logs $(docker ps | grep ghcr.io/python | awk '{print $1}')
+          docker logs $(docker ps | grep ghcr.io/${{ env.IMAGE }}:latest | awk '{print $1}')
 
   #     - name: Login to ACR
   #       run: docker login -u ${{ env.ACR_ADMIN_USER }} -p ${{ secrets.ACR_PASSWORD }} ${{ env.ACR_ADDR }}
