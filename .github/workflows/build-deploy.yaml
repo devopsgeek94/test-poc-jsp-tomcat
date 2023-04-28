@@ -43,7 +43,7 @@ jobs:
 
       - name: Login to ACR
         run: |
-          export CR_PAT=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
+          export CR_PAT="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"
           echo $CR_PAT | docker login ghcr.io/shubhamarora94/test-poc-jsp-tomcat -u shubhamarora94 --password-stdin
           docker images
           docker run -p 8090:8080 -d ghcr.io/python
