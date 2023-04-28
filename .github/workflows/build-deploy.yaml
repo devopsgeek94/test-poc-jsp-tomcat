@@ -45,7 +45,7 @@ jobs:
           docker images
           docker run -p 8090:8080 -d testregistry91.azurecr.io/python
           docker ps 
-          docker logs
+          docker logs $(docker ps | grep testregistry91.azurecr.io/python | awk '{print $1}')
 
   #     - name: Login to ACR
   #       run: docker login -u ${{ env.ACR_ADMIN_USER }} -p ${{ secrets.ACR_PASSWORD }} ${{ env.ACR_ADDR }}
