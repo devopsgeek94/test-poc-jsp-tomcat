@@ -38,7 +38,7 @@ jobs:
       # build image
       - name: Run buildpack python
         run: |
-          pack build ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE }}:${{ github.sha }} --buildpack 'gcr.io/paketo-buildpacks/java' --builder paketobuildpacks/builder:base --path -e BP_JVM_VERSION=11.* --path ./spring-boot-jsp-postgres-develop/
+          pack build ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE }}:${{ github.sha }} -e BP_JVM_VERSION=11 --buildpack 'gcr.io/paketo-buildpacks/java' --builder paketobuildpacks/builder:base --path ./spring-boot-jsp-postgres-develop/
       - name: Login to ACR
         run: docker login -u ${{ env.ACR_ADMIN_USER }} -p ${{ secrets.ACR_PASSWORD }} ${{ env.ACR_ADDR }}
 
