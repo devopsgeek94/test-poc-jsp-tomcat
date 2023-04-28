@@ -38,14 +38,17 @@ jobs:
       # build image
       - name: Run buildpack python
         run: |
-          pack build ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE }}:latest -e BP_JVM_VERSION=11 --buildpack 'gcr.io/paketo-buildpacks/java' --builder paketobuildpacks/builder:base --path ./spring-boot-jsp-postgres-develop/
+          pack build ghcr.io/${{ env.IMAGE }}:latest -e BP_JVM_VERSION=11 --buildpack 'gcr.io/paketo-buildpacks/java' --builder paketobuildpacks/builder:base --path ./spring-boot-jsp-postgres-develop/
+          #pack build ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE }}:latest -e BP_JVM_VERSION=11 --buildpack 'gcr.io/paketo-buildpacks/java' --builder paketobuildpacks/builder:base --path ./spring-boot-jsp-postgres-develop/
 
       - name: Login to ACR
-        run: | 
+        run: |
+          export CR_PAT=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
+          echo $CR_PAT | docker login ghcr.io -u shubhamarora94 --password-stdin
           docker images
-          docker run -p 8090:8080 -d testregistry91.azurecr.io/python
+          docker run -p 8090:8080 -d ghcr.io/python
           docker ps 
-          docker logs $(docker ps | grep testregistry91.azurecr.io/python | awk '{print $1}')
+          docker logs $(docker ps | grep ghcr.io/python | awk '{print $1}')
 
   #     - name: Login to ACR
   #       run: docker login -u ${{ env.ACR_ADMIN_USER }} -p ${{ secrets.ACR_PASSWORD }} ${{ env.ACR_ADDR }}
