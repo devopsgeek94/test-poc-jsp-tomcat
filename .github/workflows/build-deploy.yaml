@@ -1,0 +1,112 @@
+name: Build and Deploy Python
+
+on:
+  push:
+    paths:
+      - "./**"
+  workflow_dispatch:
+
+env:
+# ACR data
+  ACR_ADDR: testregistry91.azurecr.io
+  ACR_NAME: testregistry91
+  ACR_ADMIN_USER: testregistry91
+  DOCKER_CMD: "sudo docker"
+  IMAGE: python
+  # needed to access AKS
+  CLUSTER_NAME: k8-cluster2
+  CLUSTER_RG: k8-cluster_group2
+  NAMESPACE: default
+  # keyvault parameters
+  KEYVAULTNAME: testKVtomcat2
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      # standard GitHub Action
+      - name: Checkout
+        uses: actions/checkout@master
+      #  with:
+      #    ref: master
+
+       # Install pack CLI
+      - name: Install buildpack
+        run: |
+          (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.19.0/pack-v0.19.0-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+
+      # build image
+      - name: Run buildpack python
+        run: |
+          pack build ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE }}:${{ github.sha }} --buildpack 'gcr.io/paketo-buildpacks/python' --builder paketobuildpacks/builder:base --path ./src/
+      - name: Login to ACR
+        run: docker login -u ${{ env.ACR_ADMIN_USER }} -p ${{ secrets.ACR_PASSWORD }} ${{ env.ACR_ADDR }}
+
+      # push image to registry
+      - name: Tag and push python image
+        run: |
+          docker tag ${{ env.ACR_ADDR }}/${{ env.IMAGE }}:${{ github.sha }} ${{ env.ACR_ADDR }}/${{ env.IMAGE }}:latest
+          docker push ${{ env.ACR_ADDR }}/${{ env.IMAGE }}:${{ github.sha }}
+          docker push ${{ env.ACR_ADDR }}/${{ env.IMAGE }}:latest
+
+  deploy-python:
+    needs: build-and-package 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      # point to the team's AKS cluster
+      - name: Set AKS cluster
+        uses: azure/aks-set-context@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+          resource-group: ${{ env.CLUSTER_RG }}
+
+      # Create the pull secret needed to access the repository
+      - name: Create pull secret
+        uses: Azure/k8s-create-secret@v1
+        with:
+          namespace: ${{ env.NAMESPACE }}
+          container-registry-url: ${{ env.ACR_ADDR }}
+          container-registry-username: ${{ env.ACR_NAME }}
+          container-registry-password: ${{ secrets.ACR_PASSWORD }}
+          secret-name: ${{ env.ACR_ADDR }}-pull-secret
+
+      # install helm
+      - uses: azure/setup-helm@v1
+        with:
+          version: 'latest' # default is latest stable
+      
+      # Bake and deploy the application manifests
+      #
+      - name: Get User Assigned Managed Identity
+        id: getUserAssignedIdentity
+        run: |
+            echo "::set-output name=user_assigned_identity::`az aks show -g ${{ env.CLUSTER_RG }}  -n ${{ env.CLUSTER_NAME }} --query identityProfile.kubeletidentity.clientId`"
+            echo "::add-mask::`az aks show -g ${{ env.CLUSTER_RG }}  -n ${{ env.CLUSTER_NAME }} --query identityProfile.kubeletidentity.clientId`"
+  
+      - name: bakeManifests
+        uses: azure/k8s-bake@v1
+        id: bakeManifests
+        with:
+          renderEngine: helm
+          helmChart: ./charts/ws
+          overrideFiles: ./charts/ws/values.yaml
+          overrides: |
+            config.keyVault.userAssignedIdentityID: 9f53d64a-7086-4c91-8b61-ac113801a816
+            config.keyVault.resourceGroup: ${{ env.CLUSTER_RG }} 
+            config.keyVault.keyVaultName: ${{ env.KEYVAULTNAME }} 
+            config.keyVault.tenantId: ${{ secrets.AZURE_TENANTID }} 
+          helm-version: 'latest'
+          silent: 'false'
+
+      # deploy the kubernetes resources
+      - uses: Azure/k8s-deploy@v1.2
+        with:
+          namespace: ${{ env.NAMESPACE }}
+          manifests: ${{ steps.bakeManifests.outputs.manifestsBundle }}
+          images: |
+            ${{ env.ACR_ADDR }}/${{ env.IMAGE }}:${{ github.sha }}
+          imagepullsecrets: |
+            ${{ env.ACR_ADDR }}-pull-secret
