@@ -43,7 +43,7 @@ jobs:
       - name: Login to ACR
         run: | 
           docker images
-          docker run -p 8090:8080 -d 
+          docker run -p 8090:8080 -d testregistry91.azurecr.io/python
           docker ps 
           docker logs
 
