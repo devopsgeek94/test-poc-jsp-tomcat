@@ -54,9 +54,10 @@ jobs:
           #echo $CR_PAT | docker login ghcr.io/shubhamarora94/test-poc-jsp-tomcat -u shubhamarora94 --password-stdin
           docker images
           docker push ghcr.io/shubhamarora94/${{ env.IMAGE }}:latest
-  #        docker run -p 8090:8080 -d ghcr.io/shubhamarora94/${{ env.IMAGE }}:latest
-  #        docker ps 
-  #        docker logs $(docker ps | grep ghcr.io/${{ env.IMAGE }}:latest | awk '{print $1}')
+          docker run -p 8090:8080 -d ghcr.io/shubhamarora94/${{ env.IMAGE }}:latest
+          docker ps 
+          docker logs $(docker ps | grep ghcr.io/${{ env.IMAGE }}:latest | awk '{print $1}')
+          curl localhost:8090
 
   #     - name: Login to ACR
   #       run: docker login -u ${{ env.ACR_ADMIN_USER }} -p ${{ secrets.ACR_PASSWORD }} ${{ env.ACR_ADDR }}
