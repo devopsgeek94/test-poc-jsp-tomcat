@@ -57,7 +57,8 @@ jobs:
           docker run -p 8090:8080 -d ghcr.io/shubhamarora94/${{ env.IMAGE }}:latest
           docker ps 
           #docker logs $(docker ps | grep ghcr.io/${{ env.IMAGE }}:latest | awk '{print $1}')
-          curl localhost:8090
+          curl 127.0.0.1:8090
+          curl 127.0.0.1:8080
 
   #     - name: Login to ACR
   #       run: docker login -u ${{ env.ACR_ADMIN_USER }} -p ${{ secrets.ACR_PASSWORD }} ${{ env.ACR_ADDR }}
