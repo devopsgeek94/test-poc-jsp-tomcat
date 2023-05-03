@@ -12,7 +12,7 @@ env:
   ACR_NAME: testregistry91
   ACR_ADMIN_USER: testregistry91
   DOCKER_CMD: "sudo docker"
-  IMAGE: jsptomcat
+  IMAGE: jsptomcat2
   # needed to access AKS
   CLUSTER_NAME: k8-cluster2
   CLUSTER_RG: k8-cluster_group2
